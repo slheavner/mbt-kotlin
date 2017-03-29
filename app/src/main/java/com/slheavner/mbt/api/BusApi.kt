@@ -15,12 +15,13 @@ class BusApi {
 
     val client = OkHttpClient()
 
-    fun getBusList(): Observable<Array<BusModel>> {
+    fun getBusList(): Observable<BusModel> {
         return Observable.defer {
             val request = Request.Builder().url("https://morgantownbustracker.org/initialize").build()
             val response = client.newCall(request).execute()
             val data = response.body().string()
-            Observable.just(Gson().fromJson(data, listOf<BusModel>().toTypedArray().javaClass))
+            val buses = Gson().fromJson(data, arrayOf<BusModel>().javaClass)
+            Observable.from(buses)
         }.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread())
     }
 }

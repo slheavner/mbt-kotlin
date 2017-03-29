@@ -14,10 +14,13 @@ import com.slheavner.mbt.api.BusModel
  */
 class BusStatusAdapter : RecyclerView.Adapter<BusStatusAdapter.ViewHolder>(){
 
-    var busData: List<BusModel>? = null
+    var busData: MutableList<BusModel> = mutableListOf()
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
-        holder?.statusText?.text = busData?.get(position)?.locations?.get(0)?.desc
+        val bus = busData[position]
+        val location = bus.locations[0]
+        holder?.statusText?.text = location.desc
+        holder?.routeNumberText?.text = bus.number
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder? {
@@ -26,16 +29,29 @@ class BusStatusAdapter : RecyclerView.Adapter<BusStatusAdapter.ViewHolder>(){
     }
 
     override fun getItemCount(): Int {
-        return busData?.size ?: 0
+        return busData.size
     }
 
-    fun setData(buses: List<BusModel>){
-        this.busData = buses
-        this.notifyDataSetChanged()
+    override fun getItemId(position: Int): Long {
+        return busData[position].id.hashCode().toLong()
+    }
+
+    fun addItem(bus: BusModel){
+        val index = busData.indexOfFirst {
+            it.id == bus.id
+        }
+        if(index < 0){
+            busData.add(bus)
+            notifyItemInserted(busData.lastIndex)
+        }else{
+            busData[index] = bus
+            notifyItemChanged(index)
+        }
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val statusText: TextView by bindView<TextView>(R.id.status_text_one)
+        val statusText: TextView by bindView<TextView>(R.id.item_status_text)
+        val routeNumberText: TextView by bindView<TextView>(R.id.item_route_number)
     }
 
 }

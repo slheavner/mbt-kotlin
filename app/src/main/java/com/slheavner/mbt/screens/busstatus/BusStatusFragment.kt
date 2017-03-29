@@ -24,7 +24,6 @@ open class BusStatusFragment : SwipeRefreshLayout.OnRefreshListener, BaseFragmen
     val busStatusAdapter = BusStatusAdapter()
     val busApi = BusApi()
 
-
     @SuppressLint("InflateParams")
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater?.inflate(R.layout.fragment_bus_status, null)
@@ -32,30 +31,38 @@ open class BusStatusFragment : SwipeRefreshLayout.OnRefreshListener, BaseFragmen
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        busStatusAdapter.setHasStableIds(true)
         recyclerView.layoutManager = LinearLayoutManager(view?.context, LinearLayoutManager.VERTICAL, false)
         recyclerView.adapter = busStatusAdapter
         swipeRefreshLayout.setOnRefreshListener(this)
+        swipeRefreshLayout.isRefreshing = true
         onRefresh()
     }
 
     override fun onRefresh() {
-        busApi.getBusList().subscribe(this::updateBusList, this::onRefreshFailed)
+        busApi.getBusList().doOnTerminate {
+            swipeRefreshLayout.isRefreshing = false
+        }.subscribe(this::updateBusList, this::onRefreshFailed)
     }
 
-    fun updateBusList(list: Array<BusModel>) {
-        busStatusAdapter.setData(list.toList())
-        swipeRefreshLayout.isRefreshing = false
+    fun updateBusList(bus: BusModel) {
+        busStatusAdapter.addItem(bus)
     }
 
     fun onRefreshFailed(error: Throwable) {
         error.printStackTrace()
-        swipeRefreshLayout.isRefreshing = false
     }
 
+
     companion object {
+        val TAG = "BusStatusFragment"
         fun newInstance(): BusStatusFragment {
             val fragment = BusStatusFragment()
             return fragment
+        }
+
+        fun tag(): String {
+            return TAG
         }
     }
 
