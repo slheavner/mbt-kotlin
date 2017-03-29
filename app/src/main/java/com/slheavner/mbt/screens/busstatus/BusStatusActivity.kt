@@ -1,5 +1,6 @@
 package com.slheavner.mbt.screens.busstatus
 
+import android.app.Application
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.support.v7.widget.Toolbar
@@ -22,36 +23,46 @@ class BusStatusActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_root)
+        setupToolbar()
+        setupDrawer()
+        showBusStatusFragment()
+    }
+
+    internal fun setupToolbar() {
+        setSupportActionBar(toolbar)
+        toolbar.setBackgroundColor(MDColor.INDIGO_900)
+        toolbar.setTitleTextColor(MDColor.WHITE)
+    }
+
+    internal fun setupDrawer() {
         val drawerHeader = AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(ColorDrawable(MDColor.YELLOW_700))
                 .addProfiles(
                         ProfileDrawerItem().withIcon(R.mipmap.ic_launcher)
                 ).build()
-        setSupportActionBar(toolbar)
         drawer = DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(toolbar)
                 .addDrawerItems(busDrawerItem)
                 .withAccountHeader(drawerHeader)
                 .withOnDrawerItemClickListener { view, position, drawerItem ->
-                    if (position == 1) {
-                        showBusStatusFragment()
-                        drawer?.closeDrawer()
+                    when (position) {
+                        1 -> showBusStatusFragment()
                     }
+                    drawer?.closeDrawer()
                     true
                 }
                 .build()
-        toolbar.setBackgroundColor(MDColor.BLUE_100)
-        toolbar.setTitleTextColor(MDColor.WHITE)
-        showBusStatusFragment()
     }
 
     fun showBusStatusFragment() {
-        val busStatusFragment = BusStatusFragment.newInstance()
+        val busStatusFragment =
+                supportFragmentManager.findFragmentByTag(BusStatusFragment.tag())
+                        ?: BusStatusFragment.newInstance()
         supportFragmentManager
                 ?.beginTransaction()
-                ?.replace(R.id.root_fragment_holder, busStatusFragment)
+                ?.replace(R.id.root_fragment_holder, busStatusFragment, BusStatusFragment.tag())
                 ?.commit()
     }
 }
